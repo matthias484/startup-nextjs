@@ -1,61 +1,21 @@
-# Startup - Free Next.js Startup Website Template
+# Kubernetes Deployment der Next.js-Anwendung
 
-Startup free, open-source, and premium-quality startup website template for Next.js comes with everything you need to launch a startup, business, or SaaS website, including all essential sections, components, and pages.
+Für dieses Projekt habe ich die Konfigurationsdatei `deployment.yml` erstellt, die alle benötigten Kubernetes-Ressourcen definiert: **Deployment**, **Service** und **Horizontal Pod Autoscaler (HPA)**.
 
-If you're looking for a high-quality and visually appealing, feature-rich Next.js Template for your next startup, SaaS, or business website, this is the perfect choice and starting point for you!
+Das Docker-Image `mwerkl/startup-nextjs:latest` wurde frisch erstellt und auf DockerHub hochgeladen, um es im Kubernetes-Cluster zu verwenden.
 
-### ✨ Key Features
-- Crafted for Startup and SaaS Business
-- Next.js and Tailwind CSS
-- All Essential Business Sections and Pages
-- High-quality and Clean Design
-- Dark and Light Version
-- TypeScript Support
-and Much More ...
+### Strategien und Implementierung
 
-### 🙌 Detailed comparison between the Free and Pro versions of Startup
+#### Zero-Downtime Deployment
+Um sicherzustellen, dass es während der Bereitstellung zu keiner Ausfallzeit kommt, habe ich eine **Rolling Update**-Strategie verwendet. Dadurch werden alte Pods schrittweise durch neue ersetzt, sodass die Anwendung während des gesamten Prozesses weiterhin verfügbar bleibt.
 
-| Feature             | Free | Pro |
-|---------------------|------------|----------|
-| Next.js Landing Page             | ✅ Yes      | ✅ Yes      |
-| All The Integrations - Auth, DB, Payments, Blog and many more ...             | ❌ No      | ✅ Yes |
-| Homepage Variations             | 1      | 2 |
-| Additional SaaS Pages and Components             | ❌ No      | ✅ Yes |
-| Functional Blog with Sanity       | ❌ No      | ✅ Yes | ✅ Yes |
-| Use with Commercial Projects            | ✅ Yes      | ✅ Yes      |
-| Lifetime Free Updates             | ✅ Yes      | ✅ Yes |
-| Email Support       | ❌ No         | ✅ Yes       |
-| Community Support         | ✅ Yes         | ✅ Yes       |
+#### Zugriff auf die Anwendung
+Die Anwendung wird durch einen **LoadBalancer Service** bereitgestellt, der Anfragen auf **Port 8080** weiterleitet. Dadurch kann ich die Erreichbarkeit der Anwendung überprüfen, indem ich sie über `localhost:8080` im Browser aufrufe.
 
+#### Automatische Skalierung
+Um die Last dynamisch zu bewältigen, habe ich den **Horizontal Pod Autoscaler (HPA)** eingesetzt. Dieser sorgt dafür, dass die Anzahl der Pods erhöht wird, wenn die CPU-Auslastung einen Schwellenwert von **70%** überschreitet, um so auf steigende Anforderungen reagieren zu können.
 
-### [🔥 Get Startup Pro](https://nextjstemplates.com/templates/saas-starter-startup)
-
-[![Startup Pro](https://raw.githubusercontent.com/NextJSTemplates/startup-nextjs/main/startup-pro.webp)](https://nextjstemplates.com/templates/saas-starter-startup)
-
-Startup Pro - Expertly crafted for fully-functional, high-performing SaaS startup websites. Comes with with Authentication, Database, Blog, and all the essential integrations necessary for SaaS business sites.
-
-
-### [🚀 View Free Demo](https://startup.nextjstemplates.com/)
-
-### [🚀 View Pro Demo](https://startup-pro.nextjstemplates.com/)
-
-### [📦 Download](https://nextjstemplates.com/templates/startup)
-
-### [🔥 Get Pro](https://nextjstemplates.com/templates/saas-starter-startup)
-
-### [🔌 Documentation](https://nextjstemplates.com/docs)
-
-### ⚡ Deploy Now
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNextJSTemplates%2Fstartup-nextjs)
-
-[![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/NextJSTemplates/startup-nextjs)
-
-
-### 📄 License
-Startup is 100% free and open-source, feel free to use with your personal and commercial projects.
-
-### 💜 Support
-If you like the template, please star this repository to inspire the team to create more stuff like this and reach more users like you!
-
-### ✨ Explore and Download - Free [Next.js Templates](https://nextjstemplates.com)
+#### Überwachung der Anwendung
+Um die Stabilität und Verfügbarkeit der Anwendung sicherzustellen, habe ich sowohl **Liveness**- als auch **Readiness-Probes** implementiert:
+- Die **Liveness Probe** überwacht, ob der Container ordnungsgemäß ausgeführt wird. Sollte der Container nicht mehr reagieren, wird er neu gestartet.
+- Die **Readiness Probe** stellt sicher, dass der Container erst dann Traffic empfängt, wenn er vollständig initialisiert und bereit dafür ist. Beide Probes verweisen in diesem Fall auf die `/about`-Seite, um die Funktionstüchtigkeit der Anwendung zu testen.
