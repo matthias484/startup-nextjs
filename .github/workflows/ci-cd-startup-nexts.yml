@@ -94,3 +94,21 @@ jobs:
             --name startup-nextjs \
             --resource-group DevOps \
             --image ${{ secrets.DOCKER_HUB_USERNAME }}/startup-nextjs:${{ github.sha }}
+
+  terraform-apply:
+    if: github.ref == 'refs/heads/release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        env:
+          TF_VAR_azure_subscription_id: ${{ secrets.STARTUPNEXTJS_AZURE_SUBSCRIPTION_ID }}
+        run: terraform apply -auto-approve
